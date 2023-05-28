@@ -1,0 +1,94 @@
+import pandas as pd
+
+df = pd.read_csv('fashion-mnist_train.csv')
+
+df_x = df.drop(['label'],axis=1)
+
+df_y = df['label']
+
+df.head()
+
+from sklearn.model_selection import train_test_split
+
+x_train,x_test,y_train,y_test = train_test_split(df_x,df_y,test_size=0.3,random_state=123)
+
+
+print(x_train.shape)
+print(x_test.shape)
+print(y_train.shape)
+print(y_test.shape)
+
+
+x_train = x_train.to_numpy().reshape(42000,28,28,1)
+x_test = x_test.to_numpy().reshape(18000,28,28,1)
+y_train = y_train.to_numpy()
+y_test = y_test.to_numpy()
+
+
+print(x_train.shape)
+print(x_test.shape)
+print(y_train.shape)
+print(y_test.shape)
+
+
+import matplotlib.pyplot as plt
+plt.imshow(x_train[0])
+
+
+plt.imshow(x_train[1])
+
+x_train = x_train.astype('float32')/255.0
+x_test = x_test.astype('float32')/255.0
+
+
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense,Flatten,Dropout
+from tensorflow.keras.optimizers import Adam
+
+
+
+cnn_model = Sequential()
+cnn_model.add(Conv2D(32,3,3,input_shape=(28,28,1),activation='relu'))
+cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+cnn_model.add(Flatten())
+cnn_model.add(Dense(32,activation='relu'))
+cnn_model.add(Dense(17,activation='sigmoid'))
+
+cnn_model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer = Adam(learning_rate=0.001),
+    metrics = ['accuracy']
+)
+
+
+
+cnn_model.fit(
+    x_train,
+    y_train,
+    epochs=50,
+    validation_data=(x_test,y_test)
+)
+
+
+import numpy as np
+y_pred = np.argmax(cnn_model.predict(x_test),axis=-1)
+
+
+
+df_output = pd.DataFrame()
+df_output['y_test'] = pd.DataFrame(y_test)
+df_output['y_pred'] = pd.DataFrame(y_pred)
+
+
+df_output.head()
+
+
+
+y_pred
+
+
+import sklearn
+sklearn.metrics.accuracy_score(y_test,y_pred)
